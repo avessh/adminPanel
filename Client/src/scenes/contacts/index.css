@@ -1,0 +1,42 @@
+.student{
+  padding: 5px 15px;
+}
+
+.mannualInput{
+  margin-right: 5px;
+  width: 14%;
+  /* border: none; */
+  /* background-color:; */
+  padding: 3px;
+}
+
+.mannualInput::placeholder{
+  /* color: white; */
+}
+
+.tableHeadRow{
+  background-color: #3498db !important;
+}
+
+
+
+
+#insertManual{
+  padding-bottom: 3% !important;
+  /* background-color: lightcoral */
+}
+
+div.studentTableDiv {
+  overflow:hidden;
+  overflow-y: scroll;
+  
+  height: 250px;
+}
+
+.studentTableDiv::-webkit-scrollbar {
+  display: none;
+}
+
+#updateData{
+  display: flex;
+}
