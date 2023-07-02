@@ -4,7 +4,6 @@ const studentSchema = new mongoose.Schema({
     StudentId: {
         type: Number,
         id: String,
-        required : true,
         unique   :true,
         ref : "courses"
 
@@ -24,8 +23,13 @@ const studentSchema = new mongoose.Schema({
     Section:{
         type: String
     },
+    Delete:{
+        type:Number,
+        default:0
+    },
     Date:{
-        type:Date
+        type:Date,
+        default: Date.now()
     }
 })
 

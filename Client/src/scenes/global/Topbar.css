@@ -1,5 +1,6 @@
 .topbox{
-    background-color: #16151c;
+    background-color: whitesmoke;
+    height: 0vh;
 }
 
 
@@ -18,8 +19,11 @@
     font-size: 15px;
     background: #0663e5;
     padding: 12px 18px 11px 18px;
+    margin-top: 20px;
     text-decoration: none;
     border: none;
+    float: right;
+  
   }
   
   .btn:hover {
@@ -30,4 +34,9 @@
     background-image: -o-linear-gradient(top, #3cb0fd, #3498db);
     background-image: linear-gradient(to bottom, #3cb0fd, #3498db);
     text-decoration: none;
+  }
+
+  #admin-btn-div{
+    /* background-color: red; */
+    width: 78vw;
   }

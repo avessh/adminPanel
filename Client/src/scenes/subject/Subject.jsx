@@ -1,48 +1,63 @@
-import { Box, Input, Button } from "@mui/material";
-import { DataGrid, GridToolbar } from "@mui/x-data-grid";
+import { DataGrid, GridToolbar } from "@mui/x-data-grid"
 import { tokens } from "../../theme";
 import { mockDataContacts } from "../../data/mockData";
 import Header from "../../components/Header";
-import { useTheme } from "@mui/material";
-// import { useState, useEffect } from "react";
-import Papa from 'papaparse'
-import axios from 'axios'
-import React, { useState, Fragment, useEffect } from "react";
-import { nanoid } from "nanoid";
-// import "./App.css";
-// import data from "./mock-data.json";
-// import ReadOnlyRow from "./components/ReadOnlyRow";
+import { useTheme, Input } from "@mui/material";
+import React, { useState, Fragment } from "react";
 // import EditableRow from "./EditableRow";
 // import ReadOnlyRow from "./ReadOnlyRow";
 // import './index.css';
+import { nanoid } from "nanoid";
+// import data from "./mock-data.json";
+import Papa from 'papaparse'
+import axios from 'axios'
+import { useEffect } from "react";
 
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import Modal from '@mui/material/Modal';
 
+import '../subject/Subject.css'
 
-
+const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '55%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'whitesmoke',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+    color: "black",
+    textAlign:"center"
+};
 
 const Contacts = () => {
+
+    //states for modal
+    const [open, setOpen] = React.useState(false);
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
 
     const [data, setData] = useState([])
     const [columnArray, setColoumnArray] = useState([])
     const [values, setValues] = useState([])
     const [subjectData, setSubjectData] = useState([])
+    const [search, setSearch] = useState('')
     const [oneSubject, setOneSubject] = useState({
         subjectCode: "",
         subjectName: "",
+
     })
-
-    const [search, setSearch] = useState('')
-
-    console.log(search);
-
-
 
     const handleInput = (e) => {
         console.log(oneSubject);
         setOneSubject({ ...oneSubject, [e.target.name]: e.target.value })
     }
 
-    const postData = async (e) => {
+    const postData = (e) => {
         e.preventDefault();
 
         try {
@@ -51,9 +66,9 @@ const Contacts = () => {
                     headers: {
                         "Content-Type": "application/json",
                     },
-                }).then(console.log("filled")).then(alert('data inserted'))
-            console.log(oneSubject);
-            // console.log(response.data)
+                }).then(alert('data inserted')).then(res => {
+                    window.location.reload()
+                })
         } catch (error) {
             console.log("error accured", error.response.oneSubject);
         }
@@ -78,23 +93,22 @@ const Contacts = () => {
         })
     }
 
-    console.log('data from csv', data);
-
-
-    //api to insert student data into database
-
     const handleUpload = async (e) => {
         e.preventDefault()
         try {
-            const respose = await axios.post('http://localhost:5505/subjectData', data, {
+            const respose = await axios.post('http://localhost:5505/subjectData', subjectData, {
                 headers: {
                     "Content-Type": "application/json",
                 },
-            }).then(console.log('success fully filled'), data).then(alert('data is inserted'))
+            }).then(console.log('success fully filled'), data).then(alert('data is inserted')).then(res => {
+                window.location.reload()
+            })
         } catch (error) {
             console.log("error accured", error);
         }
     }
+
+    console.log('data from csv', data);
 
     const fetchSubjectDetail = async () => {
 
@@ -117,113 +131,60 @@ const Contacts = () => {
         fetchSubjectDetail()
     }, [])
 
-    console.log('course data:', subjectData);
+    console.log('teachers data:', subjectData);
 
 
-    const [contacts, setContacts] = useState(data);
-    const [addFormData, setAddFormData] = useState({
-        fullName: "",
-        address: "",
-        phoneNumber: "",
-        email: "",
-    });
+    const [editSubjectData, setEditSubjectData] = useState({
+        subjectCode: "",
+        subjectName: "",
+    })
 
-    const [editFormData, setEditFormData] = useState({
-        fullName: "",
-        address: "",
-        phoneNumber: "",
-        email: "",
-    });
+    const handleUpdateEdit = (e) => {
+        console.log('edit teacher data', editSubjectData);
+        setEditSubjectData({ ...editSubjectData, [e.target.name]: e.target.value })
+    }
 
-    const [editContactId, setEditContactId] = useState(null);
+    const [editSubjectId, setEditSubjectId] = useState(-1)
 
-    const handleAddFormChange = (event) => {
-        event.preventDefault();
+    const handleEdit = (_id) => {
+        setEditSubjectId(_id)
+    }
 
-        const fieldName = event.target.getAttribute("name");
-        const fieldValue = event.target.value;
+    const [updatedData, setUpdatedData] = useState([])
 
-        const newFormData = { ...addFormData };
-        newFormData[fieldName] = fieldValue;
+    useEffect(() => {
 
-        setAddFormData(newFormData);
-    };
+        setUpdatedData(subjectData)
+        console.log('updated', updatedData);
+    }, [])
 
-    const handleEditFormChange = (event) => {
-        event.preventDefault();
 
-        const fieldName = event.target.getAttribute("name");
-        const fieldValue = event.target.value;
+    const handleUpdate = () => {
 
-        const newFormData = { ...editFormData };
-        newFormData[fieldName] = fieldValue;
+        try {
+            const response = axios
+                .post("http://localhost:5505/editsubject", { editSubjectId, editSubjectData }, {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                }).then(alert('data inserted')).then(res => {
+                    window.location.reload()
+                })
+        } catch (error) {
+            console.log("error accured", error.response.editSubjectData);
+        }
+    }
 
-        setEditFormData(newFormData);
-    };
+    const handleCancel = () => {
+        window.location.reload()
+    }
 
-    const handleAddFormSubmit = (event) => {
-        event.preventDefault();
+    const [deleteWindow, setDeleteWindow] = useState(-1)
 
-        const newContact = {
-            id: nanoid(),
-            fullName: addFormData.fullName,
-            address: addFormData.address,
-            phoneNumber: addFormData.phoneNumber,
-            email: addFormData.email,
-        };
-
-        const newContacts = [...contacts, newContact];
-        setContacts(newContacts);
-    };
-
-    const handleEditFormSubmit = (event) => {
-        event.preventDefault();
-
-        const editedContact = {
-            id: editContactId,
-            fullName: editFormData.fullName,
-            address: editFormData.address,
-            phoneNumber: editFormData.phoneNumber,
-            email: editFormData.email,
-        };
-
-        const newContacts = [...contacts];
-
-        const index = contacts.findIndex((contact) => contact.id === editContactId);
-
-        newContacts[index] = editedContact;
-
-        setContacts(newContacts);
-        setEditContactId(null);
-    };
-
-    const handleEditClick = (event, contact) => {
-        event.preventDefault();
-        setEditContactId(contact.id);
-
-        const formValues = {
-            fullName: contact.fullName,
-            address: contact.address,
-            phoneNumber: contact.phoneNumber,
-            email: contact.email,
-        };
-
-        setEditFormData(formValues);
-    };
-
-    const handleCancelClick = () => {
-        setEditContactId(null);
-    };
-
-    const handleDeleteClick = (contactId) => {
-        const newContacts = [...contacts];
-
-        const index = contacts.findIndex((contact) => contact.id === contactId);
-
-        newContacts.splice(index, 1);
-
-        setContacts(newContacts);
-    };
+    const handleDelete = () => {
+        setDeleteWindow(1)
+        console.log("delete button pressed");
+    }
 
     return (
         <div className="student">
@@ -231,78 +192,105 @@ const Contacts = () => {
                 <h3 style={{ color: "black" }}>Subjects</h3>
                 <p style={{ color: "black" }}>Add or Modify Subject data</p>
             </div>
-            <div id="studentTableDiv" className="app-container">
-                <input style={{ margin: "10px 0" }} type="text" onChange={(e) => setSearch(e.target.value)} placeholder="🔍 Search Subject" />
+
+
+            <div className="app-container">
+                <input style={{ margin: "10px 0" }} type="text" onChange={(e) => setSearch(e.target.value)} placeholder=" 🔍 Search Subject" />
+                <div>
+
+                    {/* modal code start */}
+                    <Modal
+                        open={open}
+                        onClose={handleClose}
+                        aria-labelledby="modal-modal-title"
+                        aria-describedby="modal-modal-description"
+                    >
+                        <Box sx={style}>
+                            <Typography id="modal-modal-title" variant="h6" component="h2">
+                                Are you sure you want to delete this?
+                            </Typography>
+                            <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                                <Button style={{ backgroundColor: "#3498db", height: "25px", marginRight:"5px" }} variant="contained">Yes</Button>
+                                <Button onClick={handleClose} style={{ backgroundColor: "#3498db", height: "25px" }} variant="contained">Cancel</Button>
+                            </Typography>
+                        </Box>
+                    </Modal>
+                    {/* modal code end  */}
+                </div>
                 <div className="studentTableDiv">
-                    <form onSubmit={handleEditFormSubmit}>
-                        <table data={subjectData} id="studentTable" class="table table-dark table-striped table-hover" >
+                    <form >
+
+
+                        <table class="table table-dark table-striped" >
                             <thead>
                                 <tr>
                                     <th className="tableHeadRow" >Subject Code</th>
-                                    <th className="tableHeadRow">Subject Name</th>
-                                    <th className="tableHeadRow">Action</th>
+                                    <th className="tableHeadRow" >Subject Name</th>
+                                    <th className="tableHeadRow" >Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {subjectData.filter((item) => {
                                     return search.toLowerCase() === '' ? item : item.subjectName.toLowerCase().includes(search)
                                 }).map((home) => (
-                                    <Fragment>
+                                    home._id === editSubjectId ?
                                         <tr>
-                                            <td>{home.subjectCode}</td>
-                                            <td>{home.subjectName}</td>
-                                            <td><Button style={{ backgroundColor: "#3498db", height: "25px" }} variant="contained">Edit</Button><Button style={{ backgroundColor: "lightcoral", height: "25px", marginLeft: "10px" }} variant="contained">Delete</Button></td>
+
+                                            <td><input name="subjectCode" type="text" value={home.subjectCode} placeholder={updatedData.subjectCode} onChange={handleUpdateEdit} /></td>
+                                            <td><input name="subjectName" type="text" value={updatedData.subjectName} placeholder={home.subjectName} onChange={handleUpdateEdit} /></td>
+
+                                            <td><Button onClick={() => handleUpdate(home._id)} style={{ backgroundColor: "yellow", height: "25px", marginLeft: "0px", color: "black" }} variant="contained">Update</Button>
+                                                <Button onClick={handleCancel} style={{ backgroundColor: "blue", marginLeft: "5px", height: "25px", color: "white" }} variant="contained">Cancel</Button></td>
                                         </tr>
-                                    </Fragment>
+                                        :
+                                        <Fragment>
+                                            <tr>
+                                                {/* <td>{home.teacherId}</td> */}
+                                                <td>{home.subjectCode}</td>
+                                                <td>{home.subjectName}</td>
+                                                <td><Button onClick={() => handleEdit(home._id)} style={{ backgroundColor: "#3498db", height: "25px" }} variant="contained">Edit</Button>
+                                                    <Button onClick={handleOpen} style={{ backgroundColor: "lightcoral", height: "25px", marginLeft: "10px" }} variant="contained">Delete</Button></td>
+                                            </tr>
+                                        </Fragment>
                                 ))}
                             </tbody>
                         </table>
                     </form>
                 </div>
 
-
                 <hr style={{ color: "black" }} />
 
-                <div id="updateData">
-                    <h5 style={{ color: "black" }}>Choose how to update data -</h5>
+                <h5 style={{ color: "black" }}>Choose how to update data</h5>
 
-                    <div style={{ margin: "0px 20px" }}>
-                        <input style={{ color: "black" }} type='file' name='file' accept='.csv' onChange={handleFile} />
-                        <Button style={{ margin: "0px 0px", backgroundColor: "#3498db" }} onClick={handleUpload} variant="contained">Upload CSV</Button>
-                    </div>
+                <div style={{ margin: "20px 0" }}>
+                    <input style={{ color: "black" }} type='file' name='file' accept='.csv' onChange={handleFile} />
+                    <Button style={{ margin: "0px 0px", backgroundColor: "#3498db" }} onClick={handleUpload} variant="contained">Upload CSV</Button>
+                    <hr style={{ color: "black" }} />
+                    <p style={{ color: "black", textAlign: 'center' }}>or</p>
+                    <hr style={{ color: "black" }} />
                 </div>
 
+                <h5 style={{ color: "black" }}>Insert Manually</h5>
+                <form >
+                    <input
+                        type="text"
+                        name="subjectCode"
+                        required="required"
+                        placeholder="Subject Code"
+                        onChange={handleInput}
+                        className="mannualInput"
 
-
-                <hr style={{ color: "black" }} />
-                <p style={{ color: "black", textAlign: 'center', fontSize: "20px", padding: "1vh !important" }}>OR</p>
-                <hr style={{ color: "black" }} />
-
-                <div id="insertManual">
-                    <h5 style={{ color: "black" }}>Insert Manually</h5>
-                    <form onSubmit={handleAddFormSubmit}>
-                        <input
-                            type="text"
-                            name="subjectCode"
-                            required="required"
-                            placeholder="Subject Code"
-                            className="mannualInput"
-                            value={oneSubject.subjectCode}
-                            onChange={handleInput}
-                        />
-                        <input
-                            type="text"
-                            name="subjectName"
-                            required="required"
-                            placeholder="Subject Name"
-                            className="mannualInput"
-                            value={oneSubject.subjectName}
-                            onChange={handleInput}
-                        />
-                        <Button onClick={postData} style={{ backgroundColor: "#3498db", height: "30px", marginLeft: "10px" }} variant="contained">Add</Button>
-                    </form>
-                </div>
-
+                    />
+                    <input
+                        type="text"
+                        name="subjectName"
+                        required="required"
+                        placeholder="Subject Name"
+                        onChange={handleInput}
+                        className="mannualInput"
+                    />
+                    <Button onClick={postData} style={{ backgroundColor: "#3498db", height: "30px", marginLeft: "10px" }} variant="contained">Add</Button>
+                </form>
             </div>
         </div>
     );

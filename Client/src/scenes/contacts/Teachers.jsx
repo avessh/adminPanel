@@ -1,15 +1,15 @@
-import { Box } from "@mui/material";
-import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import { tokens } from "../../theme";
-import { mockDataContacts } from "../../data/mockData";
-import Header from "../../components/Header";
-import { useTheme, Input, Button } from "@mui/material";
+// import { Box } from "@mui/material";
+// import { DataGrid, GridToolbar } from "@mui/x-data-grid";
+// import { tokens } from "../../theme";
+// import { mockDataContacts } from "../../data/mockData";
+// import Header from "../../components/Header";
+import {  Button } from "@mui/material";
 import React, { useState, Fragment } from "react";
-import EditableRow from "./EditableRow";
-import ReadOnlyRow from "./ReadOnlyRow";
+// import EditableRow from "./EditableRow";
+// import ReadOnlyRow from "./ReadOnlyRow";
 import './index.css';
-import { nanoid } from "nanoid";
-import data from "./mock-data.json";
+// import { nanoid } from "nanoid";
+// import data from "./mock-data.json";
 import Papa from 'papaparse'
 import axios from 'axios'
 import { useEffect } from "react";
@@ -44,7 +44,9 @@ const Contacts = () => {
           headers: {
             "Content-Type": "application/json",
           },
-        }).then(alert('data inserted'))
+        }).then(alert('data inserted')).then(res => {
+          window.location.reload()
+        })
       console.log(oneTeacher);
       // console.log(response.data)
     } catch (error) {
@@ -109,110 +111,46 @@ const Contacts = () => {
 
   console.log('teachers data:', teacherData);
 
-  const [contacts, setContacts] = useState(data);
-  const [addFormData, setAddFormData] = useState({
-    fullName: "",
-    address: "",
-    phoneNumber: "",
-    email: "",
-  });
 
-  const [editFormData, setEditFormData] = useState({
-    fullName: "",
-    address: "",
-    phoneNumber: "",
-    email: "",
-  });
+  const [editTeacherData , setEditTeacherData] = useState({
+    teacherName: "",
+    department: "",
+    PhoneNumber: Number,
+    teacherEmailId: ""
+  })
 
-  const [editContactId, setEditContactId] = useState(null);
+  const handleUpdateEdit = (e) => {
+    console.log('edit teacher data' , editTeacherData);
+    setEditTeacherData({...editTeacherData , [e.target.name]: e.target.value})
+  }
 
-  const handleAddFormChange = (event) => {
-    event.preventDefault();
+  const [editTeacherId , setEditTeacherId] = useState(-1)
 
-    const fieldName = event.target.getAttribute("name");
-    const fieldValue = event.target.value;
+  const handleEdit = (_id) => {
+    setEditTeacherId(_id)
+  }
 
-    const newFormData = { ...addFormData };
-    newFormData[fieldName] = fieldValue;
+  const handleUpdate = () => {
 
-    setAddFormData(newFormData);
-  };
+    try {
+      const response = axios
+        .post("http://localhost:5505/editteacher", { editTeacherId , editTeacherData}, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }).then(alert('data inserted')).then(res => {
+          window.location.reload()
+        })
+      console.log(editTeacherData);
+      // console.log(response.data)
+    } catch (error) {
+      console.log("error accured", error.response.editTeacherData);
+    }
+  }
 
-  const handleEditFormChange = (event) => {
-    event.preventDefault();
-
-    const fieldName = event.target.getAttribute("name");
-    const fieldValue = event.target.value;
-
-    const newFormData = { ...editFormData };
-    newFormData[fieldName] = fieldValue;
-
-    setEditFormData(newFormData);
-  };
-
-  const handleAddFormSubmit = (event) => {
-    event.preventDefault();
-
-    const newContact = {
-      id: nanoid(),
-      fullName: addFormData.fullName,
-      address: addFormData.address,
-      phoneNumber: addFormData.phoneNumber,
-      email: addFormData.email,
-    };
-
-    const newContacts = [...contacts, newContact];
-    setContacts(newContacts);
-  };
-
-  const handleEditFormSubmit = (event) => {
-    event.preventDefault();
-
-    const editedContact = {
-      id: editContactId,
-      fullName: editFormData.fullName,
-      address: editFormData.address,
-      phoneNumber: editFormData.phoneNumber,
-      email: editFormData.email,
-    };
-
-    const newContacts = [...contacts];
-
-    const index = contacts.findIndex((contact) => contact.id === editContactId);
-
-    newContacts[index] = editedContact;
-
-    setContacts(newContacts);
-    setEditContactId(null);
-  };
-
-  const handleEditClick = (event, contact) => {
-    event.preventDefault();
-    setEditContactId(contact.id);
-
-    const formValues = {
-      fullName: contact.fullName,
-      address: contact.address,
-      phoneNumber: contact.phoneNumber,
-      email: contact.email,
-    };
-
-    setEditFormData(formValues);
-  };
-
-  const handleCancelClick = () => {
-    setEditContactId(null);
-  };
-
-  const handleDeleteClick = (contactId) => {
-    const newContacts = [...contacts];
-
-    const index = contacts.findIndex((contact) => contact.id === contactId);
-
-    newContacts.splice(index, 1);
-
-    setContacts(newContacts);
-  };
+  const handleCancel = () => {
+    window.location.reload()
+  }
 
   return (
     <div className="student">
@@ -221,9 +159,9 @@ const Contacts = () => {
         <p style={{ color: "black" }}>Add or Modify Teachers data</p>
       </div>
       <div className="app-container">
-        <input style={{ margin: "10px 0" }} type="text" onChange={(e) => setSearch(e.target.value)} placeholder="🔍 Search Teacher" />
+        <input style={{ margin: "10px 0" }} type="text" onChange={(e) => setSearch(e.target.value)} placeholder=" 🔍 Search Teacher" />
         <div className="studentTableDiv">
-          <form onSubmit={handleEditFormSubmit}>
+          <form >
 
             <table class="table table-dark table-striped" >
               <thead>
@@ -239,6 +177,18 @@ const Contacts = () => {
                 {teacherData.filter((item) => {
                   return search.toLowerCase() === '' ? item : item.teacherName.toLowerCase().includes(search)
                 }).map((home) => (
+                  home._id === editTeacherId ?
+                  <tr>
+                  
+                  <td><input name="teacherName" type="text" value={editTeacherData.StudentName} placeholder={home.teacherName} onChange={handleUpdateEdit} /></td>
+                  <td><input name="department" type="text" value={editTeacherData.Section} placeholder={home.department} onChange={handleUpdateEdit} /></td>
+                  <td><input name="PhoneNumber" type="text" value={editTeacherData.BatchName} placeholder={home.PhoneNumber} onChange={handleUpdateEdit} /></td>
+                  <td><input name="teacherEmailId" type="text" value={editTeacherData.teacherEmailId} placeholder={home.teacherEmailId} onChange={handleUpdateEdit} /></td>
+                 
+                  <td><Button onClick={() => handleUpdate(home._id)} style={{ backgroundColor: "yellow", height: "25px", marginLeft: "0px", color: "black" }} variant="contained">Update</Button>
+                  <Button onClick={handleCancel} style={{ backgroundColor: "blue", marginLeft:"5px", height: "25px", color: "white" }} variant="contained">Cancel</Button></td>
+                </tr>
+                  :
                   <Fragment>
                     <tr>
                       {/* <td>{home.teacherId}</td> */}
@@ -246,7 +196,7 @@ const Contacts = () => {
                       <td>{home.department}</td>
                       <td>{home.PhoneNumber}</td>
                       <td>{home.teacherEmailId}</td>
-                      <td><Button style={{ backgroundColor: "#3498db", height: "25px" }} variant="contained">Edit</Button><Button style={{ backgroundColor: "lightcoral", height: "25px", marginLeft: "10px" }} variant="contained">Delete</Button></td>
+                      <td><Button onClick={() => handleEdit(home._id)} style={{ backgroundColor: "#3498db", height: "25px" }} variant="contained">Edit</Button><Button style={{ backgroundColor: "lightcoral", height: "25px", marginLeft: "10px" }} variant="contained">Delete</Button></td>
                     </tr>
                   </Fragment>
                 ))}
@@ -268,7 +218,7 @@ const Contacts = () => {
         </div>
 
         <h5 style={{ color: "black" }}>Insert Manually</h5>
-        <form onSubmit={handleAddFormSubmit}>
+        <form >
           <input
             type="text"
             name="teacherName"
