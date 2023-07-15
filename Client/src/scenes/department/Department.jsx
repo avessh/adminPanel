@@ -8,8 +8,8 @@ import toast, { Toaster } from 'react-hot-toast';
 
 
 const headers = [
-  { label: "Course ID", key: "courseId" },
-  { label: "Course Name", key: "courseName" },
+  { label: "Department ID", key: "departmentId" },
+  { label: "Department Name", key: "departmentName" },
 ];
 
 const style = {
@@ -29,6 +29,33 @@ const style = {
 
 const Contacts = () => {
 
+    // *** fetching course details code start *** 
+
+    const [courseData , setCourseData] = useState([])
+    const fetchCourseDetail = async () => {
+      const response = await axios.get('http://localhost:5505/fetchCourseData',
+        {
+  
+          headers: {
+            'Accept-Encoding': 'application/json',
+          }
+  
+        })
+        .then(res => {
+          setCourseData(res.data)
+        }).catch(err => console.log(err))
+  
+    }
+  
+    useEffect(() => {
+  
+      fetchCourseDetail()
+    }, [])
+  
+    console.log('course data in student component:', courseData);
+  
+    // *** feting course detail code ends here *** 
+
   const [open, setOpen] = React.useState(false);
   const [oneDelete, setOneDelete] = React.useState(false);
   const handleOpen = () => setOpen(true);
@@ -46,10 +73,11 @@ const Contacts = () => {
   const [data, setData] = useState([])
   const [columnArray, setColoumnArray] = useState([])
   const [values, setValues] = useState([])
-  const [courseData, setCourseData] = useState([])
-  const [oneCourse, setOneCourse] = useState({
-    courseId: "",
-    courseName: "",
+  const [departmentData, setDepartmentData] = useState([])
+  const [oneDepartment, setOneDepartment] = useState({
+    departmentId: "",
+    departmentName: "",
+    course:""
   })
 
   const [search, setSearch] = useState('')
@@ -59,15 +87,15 @@ const Contacts = () => {
 
 
   const handleInput = (e) => {
-    console.log(oneCourse);
-    setOneCourse({ ...oneCourse, [e.target.name]: e.target.value })
+    console.log(oneDepartment);
+    setOneDepartment({ ...oneDepartment , [e.target.name]: e.target.value })
   }
 
   const handleRowDelete = () => {
     console.log('id going to delete', deleteId);
     try {
 
-      const respost = axios.delete("http://localhost:5505/deleteCourse/" + deleteId, {
+      const respost = axios.delete("http://localhost:5505/deleteDepartment/" + deleteId, {
         headers: {
           'Content-Type': 'application/json'
         }
@@ -93,10 +121,10 @@ const Contacts = () => {
    // code for deleting student collection
 
    const handleDrop = () => {
-    if (dropInput === "collegeWatch/DeleteCourseCollection") {
+    if (dropInput === "collegeWatch/DeleteDepartmentCollection") {
       try {
 
-        const respost = axios.delete("http://localhost:5505/deleteCourseCollection", {
+        const respost = axios.delete("http://localhost:5505/deleteDepartmentCollection", {
           headers: {
             'Content-Type': 'application/json'
           }
@@ -126,7 +154,7 @@ const Contacts = () => {
 
     try {
       const response = axios
-        .post("http://localhost:5505/oneCourseData", oneCourse, {
+        .post("http://localhost:5505/oneDepartmentData", oneDepartment, {
           headers: {
             "Content-Type": "application/json",
           },
@@ -136,10 +164,10 @@ const Contacts = () => {
             window.location.reload()
           },2000)
         })
-      console.log(oneCourse);
+      console.log(oneDepartment);
       // console.log(response.data)
     } catch (error) {
-      console.log("error accured", error.response.onestudent);
+      console.log("error accured", error.response.oneDepartment);
     }
   }
 
@@ -170,7 +198,7 @@ const Contacts = () => {
   const handleUpload = async (e) => {
     e.preventDefault()
     try {
-      const respose = await axios.post('http://localhost:5505/coursedata', data, {
+      const respose = await axios.post('http://localhost:5505/departmentData', data, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -182,9 +210,9 @@ const Contacts = () => {
     }
   }
 
-  const fetchCourseData = async () => {
+  const fetchDepartmentData = async () => {
 
-    const response = await axios.get('http://localhost:5505/fetchCourseData',
+    const response = await axios.get('http://localhost:5505/fetchDepartmentData',
       {
 
         headers: {
@@ -193,17 +221,17 @@ const Contacts = () => {
 
       })
       .then(res => {
-        setCourseData(res.data)
+        setDepartmentData(res.data)
       }).catch(err => console.log(err))
 
   }
 
   useEffect(() => {
 
-    fetchCourseData()
+    fetchDepartmentData()
   }, [])
 
-  console.log('Course data:', courseData);
+  console.log('department data:', departmentData);
 
   // code to edit table
 
@@ -213,17 +241,17 @@ const Contacts = () => {
   // const [batch , setBatch] = useState('')
   // const [phoneNumber , setPhoneNumber] = useState('')
   // const [email , setEmail] = useState('')
-  const [editCourseData, setEditCourseData] = useState({
+  const [editDepartmentData, setEditDepartmentDats] = useState({
   })
   const handleUpdateEdit = (e) => {
-    console.log('edited data', editCourseData);
-    setEditCourseData({ ...editCourseData, [e.target.name]: e.target.value })
+    console.log('edited data', editDepartmentData);
+    setEditDepartmentDats({ ...editDepartmentData, [e.target.name]: e.target.value })
   }
-  const [editCourseId, setEditCourseId] = useState(-1)
+  const [editDepartmentId, setEditDepartmentId] = useState(-1)
 
   const handleEdit = (_id) => {
-    setEditCourseId(_id)
-    console.log("eidt id", editCourseId);
+    setEditDepartmentId(_id)
+    console.log("eidt id", editDepartmentId);
   }
 
   const handleUpdate = (_id) => {
@@ -231,7 +259,7 @@ const Contacts = () => {
 
     try {
       const response = axios
-        .post("http://localhost:5505/editcourse", { editCourseId, editCourseData }, {
+        .post("http://localhost:5505/editcourse", { editDepartmentId, editDepartmentData }, {
           headers: {
             "Content-Type": "application/json",
           },
@@ -239,7 +267,7 @@ const Contacts = () => {
           window.location.reload()
         })
     } catch (error) {
-      console.log("error accured", error.response.editCourseData);
+      console.log("error accured", error.response.editDepartmentData);
     }
 
   }
@@ -252,17 +280,17 @@ const Contacts = () => {
   return (
     <div className="student">
       <div>
-        <h3 style={{ color: "black" }}>Courses</h3>
-        <p style={{ color: "black" }}>Add or Modify Course data</p>
+        <h3 style={{ color: "black" }}>Department</h3>
+        <p style={{ color: "black" }}>Add or Modify Department data</p>
       </div>
       <div id="studentTableDiv" className="app-container">
         <input style={{ margin: "10px 0" }} type="text" onChange={(e) => setSearch(e.target.value)} placeholder=" 🔍 Search Course" />
         <Toaster position="top-right" />
         <CSVLink
-          data={courseData.filter((item) => {
+          data={departmentData.filter((item) => {
             return search.toLowerCase() === ""
               ? item
-              : item.coursename.toLowerCase().includes(search);
+              : item.departmentName.toLowerCase().includes(search);
           })}
           headers={headers}
         >
@@ -308,7 +336,7 @@ const Contacts = () => {
               component="h2"
               color={"black"}
             >
-              Are you sure you want to erase all Teachers Data
+              Are you sure you want to erase all Department Data
               <br />
               Once you delete teachers collection it can never be recovered
             </Typography>
@@ -318,7 +346,7 @@ const Contacts = () => {
               component="h2"
               color={"black"}
             >
-              ⚠️ Type <b style={{ userSelect: "none", color: "red" }}>collegeWatch/DeleteCourseCollection</b> to delete
+              ⚠️ Type <b style={{ userSelect: "none", color: "red" }}>collegeWatch/DeleteDepartmentCollection</b> to delete
             </Typography>
             <input
               style={{
@@ -396,25 +424,26 @@ const Contacts = () => {
         {/* modal code end  */}
         <div className="studentTableDiv">
           <form>
-            <table data={courseData} id="studentTable" class="table table-dark table-striped table-hover" >
+            <table data={departmentData} id="studentTable" class="table table-dark table-striped table-hover" >
               <thead>
                 <tr>
-                  <th className="tableHeadRow" >Course ID</th>
-                  <th className="tableHeadRow">Course Name</th>
+                  <th className="tableHeadRow" >Department ID</th>
+                  <th className="tableHeadRow">Department Name</th>
+                  <th className="tableHeadRow">Course</th>
                   <th className="tableHeadRow">Action</th>
                 </tr>
               </thead>
               <tbody>
-                {courseData.filter((item) => {
-                  return search.toLowerCase() === '' ? item : item.courseName.toLowerCase().includes(search)
+                {departmentData.filter((item) => {
+                  return search.toLowerCase() === '' ? item : item.departmentName.toLowerCase().includes(search)
                 }).map((home) => (
-                  home._id === editCourseId ?
+                  home._id === editDepartmentId ?
                     <tr>
                       <td>
-                        <input name="courseId" type="text" value={editCourseData.StudentId} placeholder={home.courseId} onChange={handleUpdateEdit} />
+                        <input name="courseId" type="text" value={editDepartmentData.departmentId} placeholder={home.departmentId} onChange={handleUpdateEdit} />
                       </td>
                       <td>
-                        <input name="courseName" type="text" value={editCourseData.StudentName} placeholder={home.courseName} onChange={handleUpdateEdit} />
+                        <input name="courseName" type="text" value={editDepartmentData.departmentName} placeholder={home.departmentName} onChange={handleUpdateEdit} />
                       </td>
                       <td>
                         <Button onClick={() => handleUpdate(home._id)} style={{ backgroundColor: "yellow", height: "25px", marginLeft: "0px", color: "black" }} variant="contained">Update</Button>
@@ -426,8 +455,9 @@ const Contacts = () => {
                     {
                       home.Delete === 0 ?
                       <tr>
-                      <td>{home.courseId}</td>
-                      <td>{home.courseName}</td>
+                      <td>{home.departmentId}</td>
+                      <td>{home.departmentName}</td>
+                      <td>{home.course.courseId}</td>
                       <td>
                         <Button onClick={() => handleEdit(home._id)} style={{ backgroundColor: "#3498db", height: "25px" }} variant="contained">Edit</Button>
                         <Button onClick={() => handleDOpen(home._id)} style={{ backgroundColor: "lightcoral", height: "25px", marginLeft: "10px" }} variant="contained">Delete</Button></td>
@@ -466,22 +496,39 @@ const Contacts = () => {
           <form >
             <input
               type="text"
-              name="courseId"
+              name="departmentId"
               required="required"
-              placeholder="Course ID"
+              placeholder="Department ID"
               className="mannualInput"
-              value={oneCourse.StudentId}
+              value={oneDepartment.departmentId}
               onChange={handleInput}
             />
             <input
               type="text"
-              name="courseName"
+              name="departmentName"
               required="required"
-              placeholder="Course Name"
+              placeholder="Department Name"
               className="mannualInput"
-              value={oneCourse.StudentName}
+              value={oneDepartment.departmentName}
               onChange={handleInput}
             />
+              <select
+            name="course"
+             style={{height:"30px"}}
+              className="mannualInput"
+              onChange={handleInput}
+              value={oneDepartment.course}
+            >
+              <option>Select Course</option>
+              {
+                courseData.map((home) => {
+                  return <option value={home.courseId}>{home.courseId}</option>
+                })
+              }
+            
+              
+             
+            </select>
             <Button onClick={postData} style={{ backgroundColor: "#3498db", height: "30px", marginLeft: "10px" }} variant="contained">Add</Button>
           </form>
         </div>

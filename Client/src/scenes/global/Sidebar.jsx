@@ -5,17 +5,9 @@ import { Link } from "react-router-dom";
 import "react-pro-sidebar/dist/css/styles.css";
 import { tokens } from "../../theme";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined";
 import ContactsOutlinedIcon from "@mui/icons-material/ContactsOutlined";
-import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined";
-import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
-import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
-import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
-import PieChartOutlineOutlinedIcon from "@mui/icons-material/PieChartOutlineOutlined";
-import TimelineOutlinedIcon from "@mui/icons-material/TimelineOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
-import MapOutlinedIcon from "@mui/icons-material/MapOutlined";
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme();
@@ -49,7 +41,7 @@ const Sidebar = () => {
         "& .pro-sidebar-inner": {
           background: `${"#16151c"} !important`,
           // borderRight: "2px solid black"
-          height: "120vh"
+          height: "100vh"
         },
         "& .pro-icon-wrapper": {
           backgroundColor: "transparent !important",
@@ -85,14 +77,20 @@ const Sidebar = () => {
                 alignItems="center"
                 ml="15px"
               >
-                <Typography variant="h3" color={colors.grey[600]}>
+                <Typography variant="h3" color={'Highlight'}>
                   Campus Watch
                 </Typography>
+                
+                
                 <IconButton onClick={() => setIsCollapsed(!isCollapsed)} >
                   <MenuOutlinedIcon color={colors.grey[600]} />
                 </IconButton>
+                
               </Box>
             )}
+            <Typography margin={"5px 0px 0px 20px"} variant="h5">
+                  Hello <i>Admin</i>
+                </Typography>
           </MenuItem>
 
           {!isCollapsed && (
@@ -117,17 +115,17 @@ const Sidebar = () => {
           )}
 
           <Box paddingLeft={isCollapsed ? undefined : "10%"}>
-            <Item
+            {/* <Item
               title="Dashboard"
               to="/"
               icon={<HomeOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
-            />
+            /> */}
 
             <Typography
               variant="h6"
-              color={colors.grey[600]}
+              color={"Highlight"}
               sx={{ m: "15px 0 5px 20px" }}
             >
               Data
@@ -154,29 +152,36 @@ const Sidebar = () => {
               setSelected={setSelected}
             /> */}
             <Item
-              title="Student Information"
+              title="Students"
               to="/contacts"
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Teachers Information"
+              title="Teachers"
               to="/teachers"
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
              <Item
-              title="Course Information"
+              title="Courses"
               to="/courses"
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Subject Information"
+              title="Subjects"
               to="/subjects"
+              icon={<ContactsOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+             <Item
+              title="Departments"
+              to="/departments"
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
@@ -189,13 +194,13 @@ const Sidebar = () => {
               setSelected={setSelected}
             /> */}
 
-            <Typography
+            {/* <Typography
               variant="h6"
-              color={colors.grey[600]}
+              color={"Highlight"}
               sx={{ m: "15px 0 5px 20px" }}
             >
               Pages
-            </Typography>
+            </Typography> */}
             {/* <Item
               title="Profile Form"
               to="/form"
@@ -203,16 +208,16 @@ const Sidebar = () => {
               selected={selected}
               setSelected={setSelected}
             /> */}
-            <Item
+            {/* <Item
               title="Calendar"
               to="/calendar"
               icon={<CalendarTodayOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
-            />
+            /> */}
             <Typography
               variant="h6"
-              color={colors.grey[600]}
+              color={"Highlight"}
               sx={{ m: "15px 0 5px 20px" }}
             >
               More

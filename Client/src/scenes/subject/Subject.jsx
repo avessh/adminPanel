@@ -1,14 +1,5 @@
-import { DataGrid, GridToolbar } from "@mui/x-data-grid"
-import { tokens } from "../../theme";
-import { mockDataContacts } from "../../data/mockData";
-import Header from "../../components/Header";
-import { useTheme, Input } from "@mui/material";
+
 import React, { useState, Fragment } from "react";
-// import EditableRow from "./EditableRow";
-// import ReadOnlyRow from "./ReadOnlyRow";
-// import './index.css';
-import { nanoid } from "nanoid";
-// import data from "./mock-data.json";
 import Papa from 'papaparse'
 import axios from 'axios'
 import { useEffect } from "react";
@@ -31,10 +22,39 @@ const style = {
     boxShadow: 24,
     p: 4,
     color: "black",
-    textAlign:"center"
+    textAlign: "center"
 };
 
 const Contacts = () => {
+
+    // *** fetching department details *** 
+
+    const[departmentData , setDepartmentData] = useState([])
+
+  const fetchDepartmentData = async () => {
+
+    const response = await axios.get('http://localhost:5505/fetchDepartmentData',
+      {
+
+        headers: {
+          'Accept-Encoding': 'application/json',
+        }
+
+      })
+      .then(res => {
+        setDepartmentData(res.data)
+      }).catch(err => console.log(err))
+
+  }
+
+  useEffect(() => {
+
+    fetchDepartmentData()
+  }, [])
+
+  console.log('department data:', departmentData);
+
+//   *** fetching department details code end here *** 
 
     //states for modal
     const [open, setOpen] = React.useState(false);
@@ -49,6 +69,7 @@ const Contacts = () => {
     const [oneSubject, setOneSubject] = useState({
         subjectCode: "",
         subjectName: "",
+        department:""
 
     })
 
@@ -131,7 +152,7 @@ const Contacts = () => {
         fetchSubjectDetail()
     }, [])
 
-    console.log('teachers data:', subjectData);
+    console.log('subject data:', subjectData);
 
 
     const [editSubjectData, setEditSubjectData] = useState({
@@ -210,7 +231,7 @@ const Contacts = () => {
                                 Are you sure you want to delete this?
                             </Typography>
                             <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-                                <Button style={{ backgroundColor: "#3498db", height: "25px", marginRight:"5px" }} variant="contained">Yes</Button>
+                                <Button style={{ backgroundColor: "#3498db", height: "25px", marginRight: "5px" }} variant="contained">Yes</Button>
                                 <Button onClick={handleClose} style={{ backgroundColor: "#3498db", height: "25px" }} variant="contained">Cancel</Button>
                             </Typography>
                         </Box>
@@ -226,6 +247,8 @@ const Contacts = () => {
                                 <tr>
                                     <th className="tableHeadRow" >Subject Code</th>
                                     <th className="tableHeadRow" >Subject Name</th>
+                                    <th className="tableHeadRow" >Department</th>
+                                    <th className="tableHeadRow" >Course</th>
                                     <th className="tableHeadRow" >Action</th>
                                 </tr>
                             </thead>
@@ -248,6 +271,8 @@ const Contacts = () => {
                                                 {/* <td>{home.teacherId}</td> */}
                                                 <td>{home.subjectCode}</td>
                                                 <td>{home.subjectName}</td>
+                                                <td>{home.department.departmentId}</td>
+                                                <td>{home.department.course.courseId}</td>
                                                 <td><Button onClick={() => handleEdit(home._id)} style={{ backgroundColor: "#3498db", height: "25px" }} variant="contained">Edit</Button>
                                                     <Button onClick={handleOpen} style={{ backgroundColor: "lightcoral", height: "25px", marginLeft: "10px" }} variant="contained">Delete</Button></td>
                                             </tr>
@@ -289,6 +314,22 @@ const Contacts = () => {
                         onChange={handleInput}
                         className="mannualInput"
                     />
+                    <select
+                        name="department"
+                        style={{ height: "30px" }}
+                        className="mannualInput"
+                        onChange={handleInput}
+                    >
+                        <option>Select Department</option>
+                        {
+                            departmentData.map((home) => {
+                                return <option value={home.departmentId}>{home.departmentId}</option>
+                            })
+                        }
+
+
+
+                    </select>
                     <Button onClick={postData} style={{ backgroundColor: "#3498db", height: "30px", marginLeft: "10px" }} variant="contained">Add</Button>
                 </form>
             </div>

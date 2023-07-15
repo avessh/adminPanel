@@ -7,6 +7,7 @@ const cors = require('cors')
 const courseModel = require('./models/courseShema')
 const subjectmodel = require('./models/subjectSchema')
 const teachersmodel = require('./models/teachersSchema')
+const departmentModel = require('./models/departmentSchema')
 const { ObjectId } = require('mongodb')
 
 const app = express()
@@ -21,7 +22,7 @@ app.use(cors({
 
 const PORT = 5505
 
-const uri = "mongodb://localhost:27017"
+const uri = "mongodb://localhost:27017/campusWatch"
 
 const connectionParams = {
     useNewUrlParser: true,
@@ -70,7 +71,7 @@ app.post("/studentData", bodyParser.json(), async (req, res) => {
         res.status(200).send({ "msg": "inserted to db" })
     } catch (e) {
         console.log(e)
-        res.status(500).send({ "msg": "error" })
+        res.status(500).send({ msg: "something is wrong in CSV file" })
     }
 
 })
@@ -78,20 +79,27 @@ app.post("/studentData", bodyParser.json(), async (req, res) => {
 //api to insert single student data
 app.post("/oneStudentData", bodyParser.json(), async (req, res) => {
 
+    
+
     StudentModel.findOne({StudentId:req.body.StudentId}).then((student) => {
-        if(student){
-            return   res.send({Error:"Student Already Exist"});
+        if(req.body.StudentId === ''){
+            
+            return   res.send({msg:"please fill fields"})
+        }else if(student){
+            return   res.send({msg:"student already exist"})
         }else{
 
         try {
             const studentData = new StudentModel({
                 //getting data from frontend
+                _id:req.body.StudentId,
                 StudentId: req.body.StudentId,
                 BatchName: req.body.BatchName,
                 StudentName: req.body.StudentName,
                 PhoneNumber: req.body.PhoneNumber,
                 Section: req.body.Section,
                 StudentEmailId: req.body.StudentEmailId,
+                course:req.body.course
     
             })
     
@@ -125,12 +133,13 @@ app.post("/oneTeacherData", bodyParser.json(), async (req, res) => {
     try {
         const teacherData = new teachersModel({
             //getting data from frontend
+            _id:req.body.PhoneNumber,
             teacherId: req.body.teacherId,
             teacherName: req.body.teacherName,
             department: req.body.department,
             PhoneNumber: req.body.PhoneNumber,
             teacherEmailId: req.body.teacherEmailId,
-            Date: Date.now()
+            subject:req.body.subject
 
         })
 
@@ -163,7 +172,6 @@ app.post("/teachersdata", bodyParser.json(), async (req, res) => {
             subjects: req.body.subjects,
             PhoneNumber: req.body.PhoneNumber,
             teacherEmailId: req.body.teacherEmailId,
-            Date: Date.now()
 
         })
 
@@ -189,6 +197,7 @@ app.post("/coursedata", bodyParser.json(), async (req, res) => {
 
     try {
         const courseData = new courseModel({
+            student_Id:req.body.studentId,
             courseId: req.body.courseId,
             courseName: req.body.courseName,
             Date: Date.now()
@@ -217,6 +226,7 @@ app.post("/oneCourseData", bodyParser.json(), async (req, res) => {
 
     try {
         const courseData = new courseModel({
+            _id:req.body.courseId,
             courseId: req.body.courseId,
             courseName: req.body.courseName,
             Date: Date.now()
@@ -276,8 +286,10 @@ app.post("/oneSubjectData", bodyParser.json(), async (req, res) => {
     try {
         const subjectData = new subjectmodel({
             //getting data from frontend
+            _id:req.body.subjectCode,
             subjectCode: req.body.subjectCode,
             subjectName: req.body.subjectName,
+            department:req.body.department,
             Date: Date.now()
 
         })
@@ -298,10 +310,54 @@ app.post("/oneSubjectData", bodyParser.json(), async (req, res) => {
 
 })
 
+// api to post one department data
+app.post("/oneDepartmentData", bodyParser.json(), async (req, res) => {
+
+
+    try {
+        const departmentData = new departmentModel({
+            //getting data from frontend
+            _id:req.body.departmentId,
+            departmentId: req.body.departmentId,
+            departmentName: req.body.departmentName,
+            course:req.body.course,
+            Date: Date.now()
+
+        })
+
+
+        // console.log(channel.event_description);
+        // console.log('data from front', subjectData.subjectCode);
+
+        // console.log(event_name);
+
+        const inserted = await departmentData.save();
+        console.log(inserted)
+        res.status(200).send({ "msg": "inserted to db" })
+    } catch (e) {
+        console.log(e)
+        res.status(500).send({ "msg": "error" })
+    }
+
+})
+
 // API to fetch subject details
 
 app.get("/fetchSubjectData", urlencodedParser, (req, res) => {
-    subjectmodel.find({}).then((data) => {
+    subjectmodel.find({}).populate([{path:'department' , populate :{path:"course"}}]).then((data) => {
+        res.status(200).send(data)
+        // console.log('data from database', data);
+    }).catch((e) => {
+        console.log(e)
+        res.status(500).send({ "msg": "error" })
+    })
+
+})
+
+// api to fetch department details
+
+app.get("/fetchDepartmentData", urlencodedParser, (req, res) => {
+    departmentModel.find({}).populate('course').then((data) => {
         res.status(200).send(data)
         // console.log('data from database', data);
     }).catch((e) => {
@@ -314,7 +370,7 @@ app.get("/fetchSubjectData", urlencodedParser, (req, res) => {
 //api to fetch student data
 
 app.get("/fetchStudentData", urlencodedParser, (req, res) => {
-    StudentModel.find({}).then((data) => {
+    StudentModel.find({}).populate([{path:'course' , populate:{path:'department'}}]).then((data) => {
         res.status(200).send(data)
         // console.log('data from database', data);
     }).catch((e) => {
@@ -327,7 +383,7 @@ app.get("/fetchStudentData", urlencodedParser, (req, res) => {
 //API to fetch teachers data
 
 app.get("/fetchTeachersData", urlencodedParser, (req, res) => {
-    teachersModel.find({}).then((data) => {
+    teachersModel.find({}).populate([{path:'subject' , populate:{path:'department' , populate:{path:'course'}}}]).then((data) => {
         res.status(200).send(data)
         // console.log('data from database', data);
     }).catch((e) => {
@@ -355,32 +411,41 @@ app.get("/fetchCourseData", urlencodedParser, (req, res) => {
 
 app.post("/editstudent", bodyParser.json(), async (req, res) => {
 
+    await StudentModel.findOne({StudentId:req.body.editData.StudentId}).then((student) => {
+        if(student){
+            console.log("student id" , req.body.editData.StudentId);
+            return res.send({msg:"student already exist"})
 
+        }else{
+            try {
 
-    try {
-
-        const result = await StudentModel.updateOne({ _id: req.body.editId }, {
-            $set: {
-                StudentId: req.body.editData.StudentId,
-                StudentName: req.body.editData.StudentName,
-                Section: req.body.editData.Section,
-                BatchName: req.body.editData.BatchName,
-                PhoneNumber: req.body.editData.PhoneNumber,
-                StudentEmailId: req.body.editData.StudentEmailId
-
+                const result =  StudentModel.updateOne({ _id: req.body.editId }, {
+                    $set: {
+                        StudentId: req.body.editData.StudentId,
+                        StudentName: req.body.editData.StudentName,
+                        Section: req.body.editData.Section,
+                        BatchName: req.body.editData.BatchName,
+                        PhoneNumber: req.body.editData.PhoneNumber,
+                        StudentEmailId: req.body.editData.StudentEmailId,
+                        course:req.body.editData.course
+        
+                    }
+                }).then((data) => {
+                    res.status(200).send(data)
+                    // console.log('id', req.body.editId);
+                    // console.log('student', req.body.editData.StudentName);
+                })
+        
+                // console.log("updated", result);
+        
+            } catch (err) {
+                console.log(err)
+                res.status(500).send({ "msg": "error" })
             }
-        }).then((data) => {
-            res.status(200).send(data)
-            // console.log('id', req.body.editId);
-            // console.log('student', req.body.editData.StudentName);
-        })
+        }
+    })
 
-        // console.log("updated", result);
-
-    } catch (err) {
-        console.log(err)
-        res.status(500).send({ "msg": "error" })
-    }
+   
 
 
 })
@@ -497,6 +562,132 @@ app.delete("/deleteStudent/:id" ,  async (req, res) => {
         }).then(console.log('delete id' , req.params.id))
           .then((data) => {
             res.status(200).send('done')
+            // console.log(result);
+        })
+
+        // console.log("deleted", result);
+
+    } catch (err) {
+        console.log(err)
+        res.status(500).send({ "msg": "error" })
+    }
+
+
+})
+
+// API code to delete one teacher
+app.delete("/deleteTeacher/:id" ,  async (req, res) => {
+
+
+    try {
+
+        const result = await teachersModel.updateOne({_id: req.params.id} , {
+            $set :{
+                Delete:1
+            }
+
+        }).then(console.log('delete id' , req.params.id))
+          .then((data) => {
+            res.status(200).send('done')
+            // console.log(result);
+        })
+
+        // console.log("deleted", result);
+
+    } catch (err) {
+        console.log(err)
+        res.status(500).send({ "msg": "error" })
+    }
+
+
+})
+
+// API to delete one Course
+app.delete("/deleteCourse/:id" ,  async (req, res) => {
+
+
+    try {
+
+        const result = await courseModel.updateOne({_id: req.params.id} , {
+            $set :{
+                Delete:1
+            }
+
+        }).then(console.log('delete id' , req.params.id))
+          .then((data) => {
+            res.status(200).send('done')
+            // console.log(result);
+        })
+
+        // console.log("deleted", result);
+
+    } catch (err) {
+        console.log(err)
+        res.status(500).send({ "msg": "error" })
+    }
+
+
+})
+
+
+
+// API to delete student collection
+app.delete("/deleteStudentCollection" ,  async (req, res) => {
+
+
+
+    try {
+
+        const result = await StudentModel.deleteMany({})
+          .then((data) => {
+            res.status(200).send('done')
+            // console.log(result);
+        })
+
+        // console.log("deleted", result);
+
+    } catch (err) {
+        console.log(err)
+        res.status(500).send({ "msg": "error" })
+    }
+
+
+})
+
+// API to delete teacher collection
+app.delete("/deleteTeachersCollection" ,  async (req, res) => {
+
+
+
+    try {
+
+        const result = await teachersModel.deleteMany({})
+          .then((data) => {
+            res.status(200).send('done')
+            // console.log(result);
+        })
+
+        // console.log("deleted", result);
+
+    } catch (err) {
+        console.log(err)
+        res.status(500).send({ "msg": "error" })
+    }
+
+
+})
+
+// API to delete course collection
+app.delete("/deleteCourseCollection" ,  async (req, res) => {
+
+
+
+    try {
+
+        const result = await courseModel.deleteMany({})
+          .then((data) => {
+            res.status(200).send('done')
+            console.log("collection deleted");
             // console.log(result);
         })
 

@@ -1,21 +1,11 @@
 import { Box, Button, Input, Modal, Typography } from "@mui/material";
-// import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-// import { tokens } from "../../theme";
-// import { mockDataContacts } from "../../data/mockData";
-// import Header from "../../components/Header";
-// import { useTheme } from "@mui/material";
-// import { useState, useEffect } from "react";
 import Papa from "papaparse";
 import axios from "axios";
 import React, { useState, Fragment, useEffect } from "react";
-import { nanoid } from "nanoid";
-// import "./App.css";
-// import data from "./mock-data.json";
-// import ReadOnlyRow from "./components/ReadOnlyRow";
-// import EditableRow from "./EditableRow";
-// import ReadOnlyRow from "./ReadOnlyRow";
+import toast, { Toaster } from 'react-hot-toast';
 import "./index.css";
 import { CSVLink } from "react-csv";
+
 
 const headers = [
   { label: "Student ID", key: "StudentId" },
@@ -31,7 +21,7 @@ const style = {
   top: "50%",
   left: "55%",
   transform: "translate(-50%, -50%)",
-  width: 400,
+  width: 600,
   backgroundColor: "whitesmoke",
   border: "2px solid red",
   boxShadow: 24,
@@ -40,19 +30,57 @@ const style = {
   textAlign: "center",
 };
 
+const notify = () => toast.success('Data Inserted');
+const failed = () => toast.error('Student Already Exist');
+const updated = () => toast.success('Student data updated');
+
+
 const Contacts = () => {
+
+  
+
+  // *** fetching course details code start *** 
+
+  const [courseData , setCourseData] = useState([])
+  const fetchCourseDetail = async () => {
+    const response = await axios.get('http://localhost:5505/fetchCourseData',
+      {
+
+        headers: {
+          'Accept-Encoding': 'application/json',
+        }
+
+      })
+      .then(res => {
+        setCourseData(res.data)
+      }).catch(err => console.log(err))
+
+  }
+
+  useEffect(() => {
+
+    fetchCourseDetail()
+  }, [])
+
+  console.log('course data in student component:', courseData);
+
+  // *** feting course detail code ends here *** 
+  
+
+  console.log("course detain from course component" , );
   //states for modal
   const [open, setOpen] = React.useState(false);
   const [oneDelete, setOneDelete] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const [deleteId, setDeleteId] = useState('')
+
   const handleDOpen = (_id) => {
     setOneDelete(true)
     setDeleteId(_id)
     console.log("delete is id is", deleteId);
-
   };
+
   const handleDClose = () => setOneDelete(false);
 
   const [data, setData] = useState([]);
@@ -66,6 +94,7 @@ const Contacts = () => {
     PhoneNumber: Number,
     StudentEmailId: "",
     Section: "",
+    course:""
   });
 
   const [search, setSearch] = useState("");
@@ -77,7 +106,7 @@ const Contacts = () => {
     setOneStudent({ ...onestudent, [e.target.name]: e.target.value });
   };
 
-  const [oneStudentMsgFromBack , setOneStudentMsgFromBack] = useState('')
+  // const [oneStudentMsgFromBack, setOneStudentMsgFromBack] = useState('')
 
   const postData = async (e) => {
     e.preventDefault();
@@ -88,15 +117,20 @@ const Contacts = () => {
           headers: {
             "Content-Type": "application/json",
           },
-        }).then((res) => {
-          setOneStudentMsgFromBack(res.student)
-          alert(res.E)
-          console.log("msg" , res);
+        }).then(async (res) => {
+          if (res.data.msg === "student already exist") {
+
+            failed()
+          } else if (res.data.msg === 'please fill fields') {
+            toast.error('please fill fields')
+          } else {
+            await notify()
+            setTimeout(() => {
+              window.location.reload()
+            }, 2000);
+
+          }
         })
-        .then(alert("data inserted"))
-        .then((res) => {
-          window.location.reload();
-        });
       console.log(onestudent);
       // console.log(response.data)
     } catch (error) {
@@ -127,20 +161,58 @@ const Contacts = () => {
 
   //api to insert student data into database
 
+  // Validation for student CSV file
+
+
+  const checkCSVfile = () => {
+
+    data.map((home, index) => {
+      
+        if (home.StudentId === '') {
+          toast.error(`student ID is empty in csv file ${index + 1} `)
+        }else
+
+        if (home.StudentName === '') {
+          toast.error(`Student Name is Empty in line ${index + 1}`)
+        }else
+        if (home.Section === '') {
+          toast.error(`Section is empty at line ${index + 1}`)
+        }
+      
+
+    })
+  }
+
+
+
   const handleUpload = async (e) => {
     e.preventDefault();
+
+
+
+
     try {
       const respose = await axios
         .post("http://localhost:5505/studentData", data, {
           headers: {
             "Content-Type": "application/json",
           },
+        }).then(res => {
+          if (res.data.msg === "inserted to db") {
+            toast.success('Data from CSV is saved in Database')
+            setTimeout(() => {
+              window.location.reload()
+            } , 2000)
+          } else {
+            toast.error('something went wrong')
+          }
         })
         .then(console.log("success fully filled"), data)
-        .then(alert("data is inserted")).then(res => {window.location.reload()});
     } catch (error) {
       console.log("error accured", error);
     }
+
+
   };
 
   const fetchStudentsDetail = async () => {
@@ -171,12 +243,7 @@ const Contacts = () => {
   // const [phoneNumber , setPhoneNumber] = useState('')
   // const [email , setEmail] = useState('')
   const [editData, setEditData] = useState({
-    StudentId: "",
-    StudentName: "",
-    StudentSection: "",
-    BatchName: "",
-    PhoneNumber: "",
-    StudentEmailId: "",
+
   });
   const handleUpdateEdit = (e) => {
     console.log("edited data", editData);
@@ -203,10 +270,19 @@ const Contacts = () => {
             },
           }
         )
-        .then(alert("data inserted"))
-        .then((res) => {
-          window.location.reload();
-        });
+        .then(async res => {
+          if (res.data.msg === "student already exist") {
+            failed()
+
+          } else {
+            await updated()
+            setTimeout(() => {
+              window.location.reload()
+            }, 2000);
+          }
+
+
+        })
       console.log(onestudent);
       // console.log(response.data)
     } catch (error) {
@@ -234,6 +310,29 @@ const Contacts = () => {
           'Content-Type': 'application/json'
         }
       }).then(res => {
+        toast.success('Row deleted')
+        setTimeout(()=>window.location.reload(),2000)
+      })
+
+    } catch (error) {
+      alert("error white deleting Please try after some time")
+    }
+
+  }
+
+  // API to clear all data
+
+  const [collectionDeletePrompt, setCollectionDeletePrompt] = useState('')
+
+  const handleCollectionDelete = () => {
+    console.log('id going to delete', deleteId);
+    try {
+
+      const respost = axios.delete("http://localhost:5505/deleteStudent/" + deleteId, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }).then(res => {
         window.location.reload()
       })
 
@@ -242,6 +341,44 @@ const Contacts = () => {
     }
 
   }
+
+  const [dropInput, setDropInput] = useState('')
+
+  const handleDropInput = (e) => {
+    console.log('drop input', dropInput);
+    setDropInput(e.target.value);
+  }
+
+  // code for deleting student collection
+
+  const handleDrop = () => {
+    if (dropInput === "collegeWatch/DeleteStudentCollection") {
+      try {
+
+        const respost = axios.delete("http://localhost:5505/deleteStudentCollection", {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }).then(res => {
+          if(res.data == 'done'){
+            toast.success('Collection deleted')
+            setTimeout(()=>{
+              window.location.reload()
+              },2000)
+
+          }
+        })
+
+      } catch (error) {
+        alert("error white deleting Please try after some time")
+      }
+    } else {
+      toast.error('Cannot delete Student Collection')
+    }
+
+
+  }
+
 
   return (
     <div className="student">
@@ -256,6 +393,7 @@ const Contacts = () => {
           onChange={(e) => setSearch(e.target.value)}
           placeholder=" 🔍 Search Roll No."
         />
+        <Toaster position="top-right" />
 
         <CSVLink
           data={studentData.filter((item) => {
@@ -275,7 +413,7 @@ const Contacts = () => {
               fontSize: "12px",
             }}
           >
-            Export
+            Download
           </button>
         </CSVLink>
         <button
@@ -304,17 +442,19 @@ const Contacts = () => {
               id="modal-modal-title"
               variant="h6"
               component="h2"
-              color={"red"}
+              color={"black"}
             >
               Are you sure you want to erase all {studentData ? "Student" : "error"}  data
+              <br />
+              Once you delete student collection it can never be recovered
             </Typography>
             <Typography
               id="modal-modal-title"
               variant="h6"
               component="h2"
-              color={"red"}
+              color={"black"}
             >
-              Type <b>collegeWatch/</b> to delete
+             ⚠️ Type <b style={{userSelect:"none" , color:"red"}}>collegeWatch/DeleteStudentCollection</b> to delete ⚠️
             </Typography>
             <input
               style={{
@@ -324,14 +464,18 @@ const Contacts = () => {
                 borderBottom: "1px solid red",
                 borderLeft: "none",
                 backgroundColor: "whitesmoke",
-                width: "60%"
+                width: "100%"
+
               }}
+              onChange={handleDropInput}
+              value={dropInput}
             ></input>
             <Typography id="modal-modal-description" sx={{ mt: 2 }}>
               <Button
                 style={{ height: "25px", marginRight: "5px" }}
                 variant="contained"
                 color={"error"}
+                onClick={handleDrop}
               >
                 DROP
               </Button>
@@ -403,6 +547,7 @@ const Contacts = () => {
                   <th className="tableHeadRow">Batch Name</th>
                   <th className="tableHeadRow">Phone Number</th>
                   <th className="tableHeadRow">Email</th>
+                  <th className="tableHeadRow">Course</th>
                   <th className="tableHeadRow">Action</th>
                 </tr>
               </thead>
@@ -411,7 +556,7 @@ const Contacts = () => {
                   return search.toString() === ""
                     ? item
                     : item.StudentId.toString().includes(search);
-                }).map((home) =>
+                }).map((home, index) => 
                   home._id === editId ? (
                     <tr>
                       <td>
@@ -439,6 +584,7 @@ const Contacts = () => {
                           value={editData.Section}
                           placeholder={home.Section}
                           onChange={handleUpdateEdit}
+                          style={{width:"80px"}}
                         />
                       </td>
                       <td>
@@ -448,6 +594,7 @@ const Contacts = () => {
                           value={editData.BatchName}
                           placeholder={home.BatchName}
                           onChange={handleUpdateEdit}
+                          style={{width:"80px"}}
                         />
                       </td>
                       <td>
@@ -469,27 +616,38 @@ const Contacts = () => {
                         />
                       </td>
                       <td>
+                        <input
+                          name="course"
+                          type="text"
+                          value={editData.course}
+                          placeholder={home.course.courseId}
+                          onChange={handleUpdateEdit}
+                          style={{width:"80px"}}
+                        />
+                      </td>
+                      <td>
                         <Button
                           onClick={() => handleUpdate(home._id)}
                           style={{
-                            backgroundColor: "yellow",
+
                             height: "25px",
                             marginLeft: "0px",
                             color: "black",
                           }}
                           variant="contained"
+                          color={"warning"}
                         >
                           Update
                         </Button>
                         <Button
                           onClick={handleCancel}
                           style={{
-                            backgroundColor: "blue",
                             marginLeft: "5px",
                             height: "25px",
-                            color: "white",
+                            color: "black",
                           }}
                           variant="contained"
+                          color={"secondary"}
                         >
                           Cancel
                         </Button>
@@ -498,32 +656,33 @@ const Contacts = () => {
                   ) : (
                     <Fragment>
                       {home.Delete === 0 ?
-                        <tr>
+                        <tr key={index}>
                           <td>{home.StudentId}</td>
                           <td>{home.StudentName}</td>
                           <td>{home.Section}</td>
                           <td>{home.BatchName}</td>
                           <td>{home.PhoneNumber}</td>
                           <td>{home.StudentEmailId}</td>
+                          <td>{home.course.courseId}</td>
                           <td>
                             <Button
                               onClick={() => handleEdit(home._id)}
                               style={{
-                                backgroundColor: "#3498db",
                                 height: "25px",
                               }}
                               variant="contained"
+                              color={"info"}
                             >
                               Edit
                             </Button>
                             <Button
                               onClick={() => handleDOpen(home._id)}
                               style={{
-                                backgroundColor: "lightcoral",
                                 height: "25px",
                                 marginLeft: "10px",
                               }}
                               variant="contained"
+                              color={"error"}
                             >
                               Delete
                             </Button>
@@ -555,13 +714,26 @@ const Contacts = () => {
               accept=".csv"
               onChange={handleFile}
             />
+
             <Button
-              style={{ margin: "0px 0px", backgroundColor: "#3498db" }}
+              style={{ margin: "0px 0px" }}
+              onClick={checkCSVfile}
+              variant="contained"
+              color={"warning"}
+
+            >
+              Check CSV
+            </Button>
+
+            <Button
+              style={{ margin: "0px 5px" }}
               onClick={handleUpload}
               variant="contained"
+              color={"info"}
             >
               Upload CSV
             </Button>
+
           </div>
         </div>
 
@@ -637,14 +809,31 @@ const Contacts = () => {
               value={onestudent.StudentEmailId}
               onChange={handleInput}
             />
+            <select
+            name="course"
+             style={{height:"30px"}}
+              className="mannualInput"
+              onChange={handleInput}
+              value={onestudent.course}
+            >
+              <option>Select Course</option>
+              {
+                courseData.map((home) => {
+                  return <option value={home.courseId}>{home.courseId}</option>
+                })
+              }
+            
+              
+             
+            </select>
             <Button
               onClick={postData}
               style={{
-                backgroundColor: "#3498db",
                 height: "30px",
-                marginLeft: "10px",
+                margin:"0px 0px 5px 5px"
               }}
-              variant="contained"
+              variant={"contained"}
+              color={"info"}
             >
               Add
             </Button>

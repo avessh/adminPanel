@@ -1,10 +1,11 @@
 .student{
-  padding: 5px 15px;
+  padding: 20px 15px 0px 15px;
+  overflow-y: hidden;
 }
 
 .mannualInput{
   margin-right: 5px;
-  width: 14%;
+  width: 12%;
   /* border: none; */
   /* background-color:; */
   padding: 3px;
@@ -27,7 +28,7 @@
 }
 
 div.studentTableDiv {
-  overflow:hidden;
+  /* overflow:hidden; */
   overflow-y: scroll;
   
   height: 250px;

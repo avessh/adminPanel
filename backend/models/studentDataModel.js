@@ -1,11 +1,14 @@
+const { ObjectId } = require('mongodb')
 const mongoose = require('mongoose')
 
 const studentSchema = new mongoose.Schema({
+    _id:{
+        type:String
+    },
     StudentId: {
         type: Number,
         id: String,
         unique   :true,
-        ref : "courses"
 
     },
     BatchName: {
@@ -30,6 +33,15 @@ const studentSchema = new mongoose.Schema({
     Date:{
         type:Date,
         default: Date.now()
+    },
+    course:{
+        type:mongoose.Schema.Types.Mixed,
+        ref:"coursedata"
+
+    },
+    department:{
+        type:mongoose.Schema.Types.Mixed,
+        ref:"departmentData"
     }
 })
 

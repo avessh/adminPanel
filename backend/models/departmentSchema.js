@@ -1,33 +1,35 @@
 const { ObjectId } = require('mongodb')
 const mongoose = require('mongoose')
 
-const courseSchema = new mongoose.Schema({
+const departmentSchema = new mongoose.Schema({
+
     _id:{
         type:String
     },
 
-    courseId: {
+    departmentId: {
         type: String,
         required: true,
         unique: true,
+        ref: "courses"
 
     },
     Delete: {
         type: Number,
         default: 0
     },
-    courseName: {
+    departmentName: {
         type: String
     },
-    department:{
+    course:{
         type:mongoose.Schema.Types.Mixed,
-        ref:"departmentData"
+        ref:"coursedata"
     },
     Date: {
         type: Date
     }
 })
 
-const courseModel = new mongoose.model("coursedata", courseSchema)
+const departmentModel = new mongoose.model("departmentData", departmentSchema)
 
-module.exports = courseModel
+module.exports = departmentModel
