@@ -273,7 +273,7 @@ const Contacts = () => {
             'Content-Type': 'application/json'
           }
         }).then(res => {
-          if (res.data == 'done') {
+          if (res.data === 'done') {
             toast.success('Collection deleted')
             setTimeout(() => {
               window.location.reload()
